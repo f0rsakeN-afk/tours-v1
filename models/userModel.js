@@ -1,7 +1,6 @@
-const { default: bcrypt } = require("bcryptjs");
-const { default: mongoose } = require("mongoose");
-const validator = require("validator");
-const bcrypt = require(bcrypt);
+const  bcrypt  = require("bcryptjs");
+const   mongoose  = require("mongoose");
+/* const validator = require("validator"); */
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -14,8 +13,8 @@ const userSchema = new mongoose.Schema({
     required: ["true", "User email address is required"],
     trim: true,
     unique: true,
-    lowercase: lowercase,
-    validate: [validator.isEmail, "Please provide a valid email address"],
+    lowercase: true,
+    /*    validate: [validator.isEmail, "Please provide a valid email address"], */
   },
   photo: {
     type: String,
@@ -29,7 +28,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, "A password is required"],
-    minlength: [8, "Password must be at least 8 characters"],
+    minlength: [6, "Password must be at least 8 characters"],
     select: false,
   },
   passwordConfirm: {
@@ -48,7 +47,7 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: Date,
 });
 
-userSchema.pre("save", async function next() {
+userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);
   this.passwordConfirm = undefined;
@@ -63,7 +62,7 @@ userSchema.methods.correctPassword = async function (
 };
 
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password" || this.isNew)) return next();
+  if (!this.isModified("password") || this.isNew) return next();
   this.passwordChangedAt = Date.now() - 1000;
   next();
 });
@@ -72,7 +71,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
-      10 
+      10
     );
     return JWTTimestamp < changedTimestamp;
   }

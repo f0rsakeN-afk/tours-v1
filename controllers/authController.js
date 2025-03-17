@@ -6,9 +6,9 @@ const User = require("../models/userModel");
 const AppError = require("../utils/appError");
 const sendEmail = require("../utils/email");
 
-const signToken = (id) => {
+const signToken = ({id}) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_In,
+    expiresIn: process.env.JWT_EXPIRES_IN,
   });
 };
 
@@ -28,7 +28,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
-    confirmPassword: req.body.confirmPassword,
+    passwordConfirm: req.body.passwordConfirm,
   });
   createSendToken(newUser, 201, res);
 });
@@ -145,5 +145,18 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordResetExpires = undefined;
   await user.save();
 
+  createSendToken(user, 200, res);
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user.id).select("+password");
+
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new AppError("Your current password is wrong", 401));
+  }
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
   createSendToken(user, 200, res);
 });
