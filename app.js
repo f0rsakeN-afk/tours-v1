@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const mongoSanitize = require("express-mongo-sanitize");
+const rateLimit = require("express-rate-limit");
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
 const tourRouter = require("./routes/tourRoutes");
@@ -11,6 +12,14 @@ app.use(express.json());
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("development"));
 }
+
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: "Too many requests from this IP, please try again later",
+});
+
+app.use("/api", limiter);
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
