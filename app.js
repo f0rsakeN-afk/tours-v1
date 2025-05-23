@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const mongoSanitize = require("express-mongo-sanitize");
 const rateLimit = require("express-rate-limit");
+const xss = require("xss-clean");
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
 const tourRouter = require("./routes/tourRoutes");
@@ -20,6 +21,8 @@ const limiter = rateLimit({
 });
 
 app.use("/api", limiter);
+
+app.use(xss());
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
