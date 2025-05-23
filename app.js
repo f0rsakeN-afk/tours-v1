@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const mongoSanitize = require("express-mongo-sanitize");
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
 const tourRouter = require("./routes/tourRoutes");
@@ -21,6 +22,8 @@ app.get("/", (req, res) => {
     status: "success",
   });
 });
+
+app.use(mongoSanitize());
 
 app.use("/api/v1/tours", tourRouter);
 app.use("/api/v1/users", userRouter);
