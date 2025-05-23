@@ -3,12 +3,15 @@ const app = express();
 const mongoSanitize = require("express-mongo-sanitize");
 const rateLimit = require("express-rate-limit");
 const xss = require("xss-clean");
+const helmet = require("helmet");
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
 const tourRouter = require("./routes/tourRoutes");
 const userRouter = require("./routes/userRoutes");
 
 app.use(express.json());
+
+app.use(helmet());
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("development"));
