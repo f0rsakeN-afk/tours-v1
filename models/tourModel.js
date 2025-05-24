@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const User = require("./userModel");
 
 const tourSchema = new mongoose.Schema(
   {
@@ -98,6 +99,7 @@ const tourSchema = new mongoose.Schema(
         day: Number,
       },
     ],
+    guides: Array,
   },
   {
     toJSON: {
@@ -111,6 +113,12 @@ const tourSchema = new mongoose.Schema(
 
 tourSchema.virtual("durationWeeks").get(function () {
   return this.duration / 7;
+});
+
+tourSchema.pre("save", async function (next) {
+  const guidesPromise = this.guides.map(async (id) => await User.findById(id));
+  this.guides = await Promise.all(guidesPromise);
+  next();
 });
 
 const Tour = mongoose.model("tour", tourSchema);
